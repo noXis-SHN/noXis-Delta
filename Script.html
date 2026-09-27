@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>noXis — Kalkulator & Galeri Publik</title>
+    <style>
+        *{margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', sans-serif;}
+        :root{
+            --gelap:#0f0f1a; --ungu:#7928ca; --ungu2:#ff0080;
+            --putih:#fff; --abu:#2a2a4a; --hijau:#00e080; --merah:#ff3355;
+        }
+        body{
+            background:linear-gradient(135deg, #0f0f1a, #1a1a3a);
+            min-height:100vh; color:var(--putih); padding:20px;
+        }
+        .layar{display:none; width:100%; max-width:900px; margin:0 auto;}
+        .layar.aktif{display:block; animation:muncul .4s ease;}
+        @keyframes muncul{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+
+        /* === LAYAR KALKULATOR === */
+        .kalkulator{
+            background:var(--abu); border-radius:20px; padding:30px;
+            box-shadow:0 0 30px #7928ca44; max-width:420px; margin:50px auto;
+        }
+        h1{text-align:center; margin-bottom:20px; background:linear-gradient(90deg,var(--ungu),var(--ungu2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:28px;}
+        .tampilan{
+            width:100%; padding:15px; font-size:22px; text-align:right;
+            border:none; border-radius:12px; background:#0005; color:var(--putih);
+            margin-bottom:20px; letter-spacing:2px;
+        }
+        .tombol-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+        button{
+            padding:15px; font-size:18px; border:none; border-radius:10px; cursor:pointer;
+            background:#3a3a5a; color:white; transition:.2s;
+        }
+        button:hover{transform:scale(1.05); background:var(--ungu);}
+        .tombol-sam{background:linear-gradient(90deg,var(--ungu),var(--ungu2));}
+        .tombol-hapus{background:var(--merah);}
+        .info{text-align:center; margin-top:15px; color:#8888aa; font-size:14px;}
+
+        /* === LAYAR UTAMA === */
+        .konten-utama{background:var(--abu); border-radius:20px; padding:25px; box-shadow:0 0 30px #7928ca44;}
+        .bar-atas{display:flex; gap:12px; margin-bottom:25px; align-items:center; flex-wrap:wrap;}
+        .kolom-cari{
+            flex:1; min-width:220px; padding:12px 18px; font-size:16px;
+            border:none; border-radius:10px; background:#0005; color:white;
+            border:1px solid #444477;
+        }
+        .kolom-cari:focus{outline:none; border-color:var(--ungu); box-shadow:0 0 10px #7928ca55;}
+        .tombol-upload{
+            padding:12px 24px; background:linear-gradient(90deg,var(--ungu),var(--ungu2));
+            font-weight:bold; white-space:nowrap;
+        }
+        .tombol-kembali{background:#444; margin-bottom:20px; width:100%;}
+
+        /* Form Upload */
+        .area-upload-form{
+            border:2px dashed var(--ungu); border-radius:12px; padding:30px;
+            text-align:center; margin-bottom:25px; display:none;
+        }
+        .area-upload-form.tampil{display:block; animation:muncul .3s ease;}
+        .input-nama{
+            width:100%; padding:12px 18px; font-size:16px; margin:15px 0;
+            border:none; border-radius:10px; background:#0005; color:white;
+            border:1px solid #444477;
+        }
+        .input-nama:focus{outline:none; border-color:var(--ungu);}
+        #pratinjau{max-width:100%; max-height:250px; border-radius:10px; margin:15px auto; display:none;}
+        #inputFile{display:none;}
+        .tombol-terbitkan{background:var(--hijau); margin-top:10px;}
+        .tombol-terbitkan:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
+        .wajib{color:var(--merah); font-size:13px; margin-top:10px;}
+
+        /* Galeri */
+        .galeri h2{color:var(--ungu); margin-bottom:15px; font-size:20px;}
+        .grid-gambar{
+            display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:15px;
+        }
+        .kartu-gambar{
+            background:#1a1a3a; border-radius:12px; overflow:hidden; transition:.3s;
+            cursor:pointer;
+        }
+        .kartu-gambar:hover{transform:translateY(-5px); box-shadow:0 8px 20px #7928ca44;}
+        .kartu-gambar img{width:100%; height:140px; object-fit:cover; display:block;}
+        .kartu-gambar .nama{padding:10px; font-size:13px; color:#ccc; word-break:break-all;}
+        .kosong{text-align:center; padding:40px; color:#666;}
+
+        /* === MODAL PERBESAR FOTO === */
+        .modal-latar{
+            position:fixed; inset:0; background:#000000dd;
+            display:none; align-items:center; justify-content:center;
+            z-index:999; padding:20px;
+        }
+        .modal-latar.tampil{display:flex;}
+        .modal-kotak{position:relative; max-width:90%; max-height:90%;}
+        .modal-gambar{
+            max-width:100%; max-height:85vh; border-radius:12px;
+            box-shadow:0 0 40px #7928ca66;
+        }
+        .tombol-tutup{
+            position:absolute; top:-15px; right:-15px; width:45px; height:45px;
+            border-radius:50%; background:var(--merah); color:white;
+            font-size:22px; font-weight:bold; display:flex;
+            align-items:center; justify-content:center;
+            padding:0; line-height:1; box-shadow:0 3px 10px #000;
+        }
+        .tombol-tutup:hover{transform:scale(1.1); background:#ff5577;}
+        .modal-nama{
+            text-align:center; margin-top:15px; font-size:18px;
+            color:var(--putih); text-shadow:0 2px 5px #000;
+        }
+    </style>
+</head>
+<body>
+
+<!-- === LAYAR 1: KALKULATOR === -->
+<div class="layar aktif" id="layarKalkulator">
+    <div class="kalkulator">
+        <h1>noXis</h1>
+        <input type="text" class="tampilan" id="tampilan" readonly placeholder="Ketik angka...">
+        <div class="tombol-grid">
+            <button onclick="tulis('7')">7</button>
+            <button onclick="tulis('8')">8</button>
+            <button onclick="tulis('9')">9</button>
+            <button onclick="tulis('/')">/</button>
+
+            <button onclick="tulis('4')">4</button>
+            <button onclick="tulis('5')">5</button>
+            <button onclick="tulis('6')">6</button>
+            <button onclick="tulis('*')">×</button>
+
+            <button onclick="tulis('1')">1</button>
+            <button onclick="tulis('2')">2</button>
+            <button onclick="tulis('3')">3</button>
+            <button onclick="tulis('-')">−</button>
+
+            <button onclick="tulis('0')">0</button>
+            <button onclick="tulis('.')">.</button>
+            <button onclick="hitung()" class="tombol-sam">=</button>
+            <button onclick="tulis('+')">+</button>
+
+            <button onclick="hapusSemua()" class="tombol-hapus" style="grid-column:span 4;">Hapus</button>
+        </div>
+        <p class="info">🔒 Ketik: 0 9 0 9 9 → Masuk ke Galeri Publik</p>
+    </div>
+</div>
+
+<!-- === LAYAR 2: BERANDA === -->
+<div class="layar" id="layarBeranda">
+    <div class="konten-utama">
+        <button onclick="kembaliKeKalkulator()" class="tombol-kembali">← Kembali ke Kalkulator</button>
+        <h1 style="margin-bottom:20px;">🌐 Galeri Publik noXis</h1>
+
+        <div class="bar-atas">
+            <input type="text" class="kolom-cari" id="kolomCari" placeholder="Cari nama gambar..." oninput="cariGambar()">
+            <button class="tombol-upload" onclick="bukaFormUpload()">📤 Upload</button>
+        </div>
+
+        <div class="area-upload-form" id="formUpload">
+            <p style="font-size:18px; margin-bottom:10px;">Pilih gambar & Beri Nama</p>
+            <input type="text" class="input-nama" id="inputNamaGambar" placeholder="✍️ Beri nama gambar kamu *WAJIB*" required oninput="cekLengkap()">
+            <button onclick="document.getElementById('inputFile').click()" class="tombol-sam">Pilih File Gambar</button>
+            <input type="file" id="inputFile" accept="image/*" onchange="cekLengkap()">
+            <img id="pratinjau" alt="Pratinjau">
+            <br>
+            <button onclick="terbitkan()" class="tombol-terbitkan" id="btnTerbitkan" disabled>✅ Terbitkan ke Publik</button>
+            <p class="wajib" id="pesanWajib">Lengkapi nama & pilih gambar dulu</p>
+        </div>
+
+        <div class="galeri">
+            <h2>Hasil Publik</h2>
+            <div class="grid-gambar" id="daftarGambar">
+                <p class="kosong">Belum ada gambar. Jadilah yang pertama mengunggah!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL PERBESAR FOTO === -->
+<div class="modal-latar" id="modalFoto" onclick="tutupModal(event)">
+    <div class="modal-kotak" onclick="event.stopPropagation()">
+        <button class="tombol-tutup" onclick="tutupModal()">×</button>
+        <img class="modal-gambar" id="gambarBesar" alt="Gambar diperbesar">
+        <p class="modal-nama" id="namaBesar"></p>
+    </div>
+</div>
+
+<script>
+// === KALKULATOR ===
+const tampilan = document.getElementById('tampilan');
+const kodeRahasia = '09099';
+let yangDiketik = '';
+
+function tulis(nilai){
+    tampilan.value += nilai;
+    yangDiketik += nilai;
+    if(yangDiketik.endsWith(kodeRahasia)) bukaGaleri();
+}
+function hapusSemua(){ tampilan.value = ''; yangDiketik = ''; }
+function hitung(){
+    try{
+        tampilan.value = eval(tampilan.value) || '';
+        yangDiketik = tampilan.value.toString();
+    }catch{
+        tampilan.value = 'Salah';
+        setTimeout(hapusSemua, 1000);
+    }
+}
+function bukaGaleri(){
+    alert('✅ Akses diterima! Selamat datang di Galeri Publik noXis');
+    tampilkanLayar('layarBeranda');
+    hapusSemua();
+}
+function tampilkanLayar(id){
+    document.querySelectorAll('.layar').forEach(l => l.classList.remove('aktif'));
+    document.getElementById(id).classList.add('aktif');
+}
+function kembaliKeKalkulator(){ tampilkanLayar('layarKalkulator'); hapusSemua(); }
+
+// === UPLOAD & GALERI ===
+let daftarGambar = [];
+let gambarTerpilih = null;
+const inputFile = document.getElementById('inputFile');
+const inputNamaGambar = document.getElementById('inputNamaGambar');
+const pratinjau = document.getElementById('pratinjau');
+const btnTerbitkan = document.getElementById('btnTerbitkan');
+const formUpload = document.getElementById('formUpload');
+const kotakGaleri = document.getElementById('daftarGambar');
+
+function bukaFormUpload(){ formUpload.classList.toggle('tampil'); }
+inputFile.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    gambarTerpilih = file;
+    pratinjau.src = URL.createObjectURL(file);
+    pratinjau.style.display = 'block';
+    cekLengkap();
+};
+function cekLengkap(){
+    const lengkap = inputNamaGambar.value.trim() !== '' && gambarTerpilih;
+    btnTerbitkan.disabled = !lengkap;
+    document.getElementById('pesanWajib').style.display = lengkap ? 'none' : 'block';
+}
+function terbitkan(){
+    const nama = inputNamaGambar.value.trim();
+    if(!nama || !gambarTerpilih) return alert('Lengkapi dulu!');
+    daftarGambar.unshift({
+        nama: nama,
+        url: URL.createObjectURL(gambarTerpilih),
+        waktu: new Date().toLocaleTimeString()
+    });
+    perbaruiGaleri();
+    alert('✅ Berhasil dipublikasikan!');
+    pratinjau.style.display = 'none';
+    btnTerbitkan.disabled = true;
+    formUpload.classList.remove('tampil');
+    inputFile.value = ''; inputNamaGambar.value = ''; gambarTerpilih = null;
+}
+function perbaruiGaleri(kataKunci=''){
+    kotakGaleri.innerHTML = '';
+    const hasil = kataKunci ? daftarGambar.filter(g => g.nama.toLowerCase().includes(kataKunci.toLowerCase())) : daftarGambar;
+    if(!hasil.length){
+        kotakGaleri.innerHTML = `<p class="kosong">${daftarGambar.length?'Tidak ditemukan':'Belum ada gambar'}</p>`;
+        return;
+    }
+    hasil.forEach((g, i) => {
+        const kartu = document.createElement('div');
+        kartu.className = 'kartu-gambar';
+        kartu.onclick = () => bukaModal(g.url, g.nama);
+        kartu.innerHTML = `
+            <img src="${g.url}" alt="${g.nama}" loading="lazy">
+            <div class="nama"><strong>${g.nama}</strong><br><small>${g.waktu}</small></div>
+        `;
+        kotakGaleri.appendChild(kartu);
+    });
+}
+function cariGambar(){ perbaruiGaleri(document.getElementById('kolomCari').value); }
+
+// === MODAL PERBESAR ===
+function bukaModal(url, nama){
+    document.getElementById('gambarBesar').src = url;
+    document.getElementById('namaBesar').textContent = nama;
+    document.getElementById('modalFoto').classList.add('tampil');
+    document.body.style.overflow = 'hidden';
+}
+function tutupModal(e){
+    if(!e || e.target.id === 'modalFoto'){
+        document.getElementById('modalFoto').classList.remove('tampil');
+        document.body.style.overflow = '';
+    }
+}
+// Tutup pakai tombol ESC
+document.onkeydown = e => {
+    if(e.key === 'Escape') tutupModal();
+};
+</script>
+</body>
+</html>
